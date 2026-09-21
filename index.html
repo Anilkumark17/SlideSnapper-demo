@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SlideSnapper · clickable demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#51006E; --p2:#7a2a9c; --gold:#FFC145; --ink:#1b1024; --mut:#7b7488; --soft:#8b83a0;
+  --line:#EDEAF3; --bg:#F7F8FC; --chip:#F0E4F6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#2a0638;font-family:Roboto,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea{font-family:inherit}
+button{appearance:none}
+input,textarea{outline:none}
+.stage{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:radial-gradient(120% 90% at 12% 8%, #51006E 0%, #7a2a9c 34%, #c9a8dd 62%, #F7F8FC 100%)}
+.phone{width:390px;height:844px;border-radius:47px;overflow:hidden;position:relative;background:#F7F8FC;box-shadow:0 40px 90px rgba(30,0,45,.42);border:7px solid rgba(255,255,255,.35);flex:none}
+.app{position:absolute;inset:0;overflow:hidden}
+.status{position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:16px 30px 0;z-index:40;pointer-events:none;color:#1b1024}
+.status.light{color:#fff}
+.bars{display:flex;align-items:flex-end;gap:2px}
+.bars i{width:3px;border-radius:1px;background:currentColor;display:block}
+.batt{width:24px;height:12px;border-radius:4px;border:1.5px solid currentColor;padding:2px}
+.batt b{display:block;width:100%;height:100%;border-radius:2px;background:currentColor}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:auto;padding:62px 20px 116px;background:var(--bg)}
+.screen.on{display:flex}
+.screen.nopad{padding:0 0 116px}
+.overlay{position:absolute;inset:0;z-index:30;display:none}
+.overlay.on{display:flex;flex-direction:column}
+.home-ind{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:rgba(27,16,36,.28);z-index:50;pointer-events:none}
+.home-ind.light{background:rgba(255,255,255,.6)}
+@keyframes fadeUp{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,193,69,.6)}100%{box-shadow:0 0 0 24px rgba(255,193,69,0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes sweep{0%{transform:translateX(-120%)}100%{transform:translateX(240%)}}
+@keyframes tickIn{0%{opacity:0;transform:translateX(8px)}100%{opacity:1;transform:translateX(0)}}
+.h-row{display:flex;align-items:center;gap:12px;min-height:44px}
+.back,.icon-btn{width:40px;height:40px;border:1px solid #E9E5F0;border-radius:14px;background:#fff;cursor:pointer;color:var(--p);font:400 18px/1 Roboto,sans-serif;flex:none;display:flex;align-items:center;justify-content:center}
+.icon-btn{width:44px;height:44px;border-radius:15px}
+.title{font:700 18px/1.2 Roboto,sans-serif;color:var(--ink)}
+.sub{font:400 12px/1.4 Roboto,sans-serif;color:var(--mut)}
+.mono{font:500 11px/1 'Roboto Mono',monospace;letter-spacing:1.3px;color:var(--soft)}
+.btn{min-height:52px;border:0;border-radius:26px;cursor:pointer;font:700 15px/1 Roboto,sans-serif}
+.btn-p{background:var(--p);color:#fff}
+.btn-g{background:var(--gold);color:#3d0053}
+.btn-w{background:#fff;color:var(--p);border:1px solid var(--p)}
+.chip{min-height:36px;padding:0 14px;border:1px solid var(--line);border-radius:18px;background:#fff;color:var(--p);font:500 12px/1 Roboto,sans-serif;cursor:pointer}
+.chip.on{background:var(--p);color:#fff;border-color:var(--p)}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px}
+.row{display:flex;align-items:center;gap:12px;padding:12px 13px;width:100%;border:1px solid var(--line);border-radius:18px;background:#fff;cursor:pointer;text-align:left}
+.field{min-height:48px;padding:0 14px;border:1px solid #E4E0EC;border-radius:13px;background:var(--bg);font:500 14px/1 Roboto,sans-serif;color:var(--ink);width:100%}
+.field:focus{border-color:var(--p);background:#fff}
+.tile{position:relative;aspect-ratio:1;padding:0;border:0;border-radius:12px;overflow:hidden;cursor:pointer;background:repeating-linear-gradient(45deg,#E4DEEE 0 7px,#F1EDF7 7px 14px)}
+.tile .cap{position:absolute;left:0;right:0;bottom:0;height:36px;background:linear-gradient(transparent,rgba(20,3,30,.72))}
+.tile .lab{position:absolute;left:6px;bottom:5px;font:500 8px/1 'Roboto Mono',monospace;color:#fff}
+.tile .star{position:absolute;top:6px;right:7px;color:rgba(255,255,255,.55);font-size:13px}
+.tile .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6px;font:500 8.5px/1.25 'Roboto Mono',monospace;color:#8b83a0;text-align:center}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.nav{position:absolute;bottom:0;left:0;right:0;z-index:20;padding:0 14px 12px;display:none}
+.nav.on{display:block}
+.nav-bar{position:relative;display:flex;align-items:flex-end;justify-content:space-between;height:72px;padding:0 8px;border-radius:28px;background:rgba(255,255,255,.93);backdrop-filter:blur(18px);border:1px solid rgba(80,0,110,.08);box-shadow:0 14px 34px rgba(45,0,66,.14)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:72px;justify-content:center;border:0;background:transparent;cursor:pointer;color:#a49cb4;font:500 9.5px/1 Roboto,sans-serif}
+.nav-btn.on{color:var(--p)}
+.fab{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:68px;height:68px;border:5px solid #fff;border-radius:50%;background:var(--gold);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 26px rgba(255,193,69,.5)}
+.toast{position:absolute;top:62px;left:16px;right:16px;z-index:60;display:none;padding:12px 14px;border-radius:16px;background:#1b1024;color:#fff;font:500 12.5px/1.35 Roboto,sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.25);animation:fadeUp .25s both}
+.toast.on{display:block}
+@media (max-width:480px){
+  .stage{padding:0;background:#000;align-items:stretch;justify-content:stretch}
+  .phone{width:100%;height:100dvh;border-radius:0;border:0;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone">
+    <div class="app" id="app">
+      <div class="status" id="status">
+        <span style="font:500 15px/1 Roboto,sans-serif">11:20</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="bars"><i style="height:5px"></i><i style="height:8px"></i><i style="height:11px"></i></div>
+          <div class="batt"><b></b></div>
+        </div>
+      </div>
+
+      <!-- INTRO 1 -->
+      <section class="screen" id="sc-intro1" style="padding:70px 24px 26px;background:radial-gradient(110% 70% at 20% 0%,#6a1090 0%,#51006E 55%,#33004a 100%)">
+        <div class="mono" style="color:#FFC145">THE PROBLEM</div>
+        <div style="font:700 25px/1.24 Roboto,sans-serif;color:#fff;margin-top:10px">Your camera roll is a graveyard for conference data.</div>
+        <div id="rollGrid" class="grid3" style="margin-top:20px"></div>
+        <div style="margin-top:auto;padding:15px 17px;border-radius:20px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);color:#fff;font:700 14.5px/1.4 Roboto,sans-serif">Slides, posters and cards sit next to dinner and the dog. SlideSnapper pulls the conference out — automatically.</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:18px">
+          <div style="display:flex;gap:6px;flex:1"><div style="width:22px;height:4px;border-radius:2px;background:#FFC145"></div><div style="width:8px;height:4px;border-radius:2px;background:rgba(255,255,255,.3)"></div></div>
+          <button class="btn btn-g" style="min-height:48px;padding:0 26px" data-go="intro2">Next</button>
+        </div>
+      </section>
+
+      <!-- INTRO 2 -->
+      <section class="screen" id="sc-intro2" style="padding:70px 24px 26px;background:radial-gradient(110% 70% at 80% 0%,#7a2a9c 0%,#51006E 58%,#2f0043 100%)">
+        <div class="mono" style="color:#FFC145">HOW IT WORKS</div>
+        <div style="font:700 25px/1.24 Roboto,sans-serif;color:#fff;margin-top:10px">You just capture.<br>We organise the rest.</div>
+        <div style="display:flex;flex-direction:column;gap:9px;margin-top:22px">
+          <div class="row" style="background:rgba(255,255,255,.95)"><div style="width:34px;height:34px;border-radius:10px;background:#F0E4F6;display:flex;align-items:center;justify-content:center;font:700 11px 'Roboto Mono';color:#51006E">14</div><div style="flex:1"><div style="font:700 13px/1.3 Roboto;color:#1b1024">Opening Keynote</div><div class="sub">Filed by day &amp; presentation</div></div><span style="color:#1f9d63;font-weight:700">✓</span></div>
+          <div class="row" style="background:rgba(255,255,255,.95)"><div style="width:34px;height:34px;border-radius:10px;background:#FFF3D6;display:flex;align-items:center;justify-content:center;font:700 11px 'Roboto Mono';color:#8a5b00">9</div><div style="flex:1"><div style="font:700 13px/1.3 Roboto;color:#1b1024">Cards &amp; QR → contacts</div><div class="sub">Tied to this event, no retyping</div></div><span style="color:#1f9d63;font-weight:700">✓</span></div>
+          <div class="row" style="background:rgba(255,255,255,.95)"><div style="width:34px;height:34px;border-radius:10px;background:#E7EEFB;display:flex;align-items:center;justify-content:center;font:700 11px 'Roboto Mono';color:#2a4d8f">AI</div><div style="flex:1"><div style="font:700 13px/1.3 Roboto;color:#1b1024">AI summaries ready</div><div class="sub">Key points from your captures</div></div><div style="width:14px;height:14px;border-radius:50%;border:2px solid #E3DCEC;border-top-color:#51006E;animation:spin 1s linear infinite"></div></div>
+        </div>
+        <div style="margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="width:74px;height:74px;border-radius:50%;background:#FFC145;display:flex;align-items:center;justify-content:center;animation:pulse 1.8s infinite">
+            <svg width="29" height="29" viewBox="0 0 24 24" fill="none" stroke="#3d0053" stroke-width="2.2"><path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5A1.5 1.5 0 0 1 18.5 20H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"></path></svg>
+          </div>
+          <div style="font:500 13px Roboto;color:rgba(255,255,255,.78)">One button. No naming, no filing.</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:20px">
+          <div style="display:flex;gap:6px;flex:1"><div style="width:8px;height:4px;border-radius:2px;background:rgba(255,255,255,.3)"></div><div style="width:22px;height:4px;border-radius:2px;background:#FFC145"></div></div>
+          <button class="btn" style="min-height:48px;padding:0 26px;background:#fff;color:#51006E" data-go="home">Enter library</button>
+        </div>
+      </section>
+
+      <!-- HOME -->
+      <section class="screen" id="sc-home">
+        <div class="h-row" style="justify-content:space-between">
+          <div><div class="sub" style="font-weight:500">Good morning</div><div class="title" style="font-size:24px">Sarah Johnson</div></div>
+          <button class="icon-btn" data-act="toggleNotif" style="position:relative">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#51006E" stroke-width="1.8"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6M10.5 20a1.8 1.8 0 0 0 3 0"></path></svg>
+            <span style="position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:#FFC145;border:1.5px solid #fff"></span>
+          </button>
+        </div>
+        <button class="card" id="activeCard" data-act="openActive" style="margin-top:18px;padding:18px;border:0;border-radius:26px;background:linear-gradient(145deg,#51006E,#a05cc0);color:#fff;text-align:left;cursor:pointer;box-shadow:0 20px 40px rgba(45,0,66,.26)"></button>
+        <div style="display:flex;gap:9px;margin-top:13px">
+          <div class="card" style="flex:1;padding:15px"><div style="font:700 21px Roboto;color:#51006E" id="statConfs">6</div><div class="sub">Conferences</div></div>
+          <div class="card" style="flex:1;padding:15px"><div style="font:700 21px Roboto;color:#51006E" id="statCaps">218</div><div class="sub">Captures</div></div>
+          <button class="card" data-go="favs" style="flex:1;padding:15px;border:0;background:#FFC145;text-align:left;cursor:pointer"><div style="font:700 21px Roboto;color:#3d0053" id="statFavs">4</div><div style="font:400 11px Roboto;color:#5b3d00">Favourites</div></button>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:20px;border-bottom:1px solid #E9E5F0">
+          <button class="chip" id="homeUp" data-act="homeUpcoming" style="border:0;background:transparent;border-radius:0;padding:0 0 9px;font:700 13.5px Roboto">Upcoming</button>
+          <button class="chip" id="homePast" data-act="homePast" style="border:0;background:transparent;border-radius:0;padding:0 0 9px;font:700 13.5px Roboto;color:#9b93ab">Recent</button>
+          <button data-go="confs" style="margin-left:auto;margin-bottom:9px;border:0;background:transparent;font:500 12px Roboto;color:#51006E;cursor:pointer">View all →</button>
+        </div>
+        <div id="homeList" style="display:flex;flex-direction:column;gap:10px;margin-top:14px"></div>
+        <button class="btn btn-p" data-go="search" style="margin-top:18px;width:100%;box-shadow:0 16px 32px rgba(45,0,66,.32)">+ Attend a new meeting</button>
+      </section>
+
+      <!-- SEARCH -->
+      <section class="screen" id="sc-search">
+        <div class="h-row" style="justify-content:space-between">
+          <div><div class="sub">Good morning</div><div class="title">Find your conference</div></div>
+          <button class="icon-btn" data-act="toggleNotif" style="position:relative">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#51006E" stroke-width="1.8"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6M10.5 20a1.8 1.8 0 0 0 3 0"></path></svg>
+            <span style="position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:#FFC145;border:1.5px solid #fff"></span>
+          </button>
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;min-height:60px;margin-top:18px;padding:0 16px;border-radius:30px;background:#fff;border:1px solid #E9E5F0;box-shadow:0 14px 34px rgba(45,0,66,.09)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#51006E" stroke-width="1.9"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+          <input id="qSearch" class="field" placeholder="Search conferences…" style="border:0;background:transparent;padding:0;min-height:0;font-size:16px">
+        </div>
+        <div id="searchIdle" style="margin-top:22px">
+          <div class="mono">RECENT</div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:8px">
+            <button class="chip" data-q="ESMO">ESMO 2026</button>
+            <button class="chip" data-q="ASCO">ASCO 2026</button>
+            <button class="chip" data-q="AACR">AACR</button>
+          </div>
+        </div>
+        <div id="searchResults" style="display:none;margin-top:18px"></div>
+      </section>
+
+      <!-- CREATE -->
+      <section class="screen" id="sc-create">
+        <div class="h-row">
+          <button class="back" data-go="search">←</button>
+          <div class="title" id="createTitle">Create conference</div>
+        </div>
+        <div class="card" style="padding:17px;margin-top:20px">
+          <div class="mono">CONFERENCE NAME</div>
+          <input id="newName" class="field" placeholder="e.g. Regional Oncology Update" style="margin-top:8px">
+        </div>
+        <div class="card" style="padding:17px;margin-top:13px">
+          <div class="mono">LOCATION</div>
+          <input id="newLoc" class="field" placeholder="City, venue" style="margin-top:8px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button class="chip" data-loc="Berlin, Messe Süd">Berlin, Messe Süd</button>
+            <button class="chip" data-loc="Chicago, McCormick">Chicago, McCormick</button>
+            <button class="chip" data-loc="Online">Online</button>
+          </div>
+        </div>
+        <div class="card" style="padding:17px;margin-top:13px">
+          <div class="mono">DATES</div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <div style="flex:1"><div class="sub">Starts</div><input id="newStart" class="field" type="date" value="2026-10-16"></div>
+            <div style="flex:1"><div class="sub">Ends</div><input id="newEnd" class="field" type="date" value="2026-10-20"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button class="btn btn-w" style="flex:1" data-act="createEvent">Create event</button>
+          <button class="btn btn-p" style="flex:1.25" data-act="createAndCapture">Start capturing</button>
+        </div>
+      </section>
+
+      <!-- EVENT -->
+      <section class="screen nopad" id="sc-event">
+        <div style="padding:62px 20px 24px;border-radius:0 0 30px 30px;background:linear-gradient(155deg,#51006E,#7a2a9c);color:#fff">
+          <div class="h-row" style="justify-content:space-between">
+            <button class="back" data-go="home" style="background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28);color:#fff">←</button>
+            <div style="display:flex;gap:9px">
+              <button class="icon-btn" data-act="favEvent" id="evFav" style="background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28);color:rgba(255,255,255,.6)">★</button>
+              <button class="icon-btn" data-act="toggleNotif" style="position:relative;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28)">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6M10.5 20a1.8 1.8 0 0 0 3 0"></path></svg>
+                <span style="position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:#FFC145"></span>
+              </button>
+            </div>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:7px 13px;border-radius:16px;background:rgba(255,193,69,.2);border:1px solid rgba(255,193,69,.5)">
+            <span style="width:7px;height:7px;border-radius:50%;background:#FFC145;animation:pulse 1.8s infinite"></span>
+            <span id="evStatus" style="font:700 10.5px/1 'Roboto Mono',monospace;letter-spacing:1.2px;color:#FFE3A6">ACTIVE CONFERENCE</span>
+          </div>
+          <div id="evName" style="font:700 26px/1.22 Roboto;margin-top:12px">ESMO Congress 2026</div>
+          <div id="evMeta" class="sub" style="color:rgba(255,255,255,.78);margin-top:6px">Berlin, Messe Süd · Oct 16–20</div>
+          <div id="evMetrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px"></div>
+        </div>
+        <div style="padding:20px 20px 0;display:flex;gap:9px">
+          <button class="btn btn-g" data-act="openCapture" style="flex:1.3;min-height:98px;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;box-shadow:0 14px 30px rgba(255,193,69,.42);animation:pulse 2.4s infinite">
+            <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#3d0053" stroke-width="2.1"><path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5A1.5 1.5 0 0 1 18.5 20H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"></path></svg>
+            Capture
+          </button>
+          <button class="card" data-go="notes" style="flex:1;min-height:98px;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#51006E" stroke-width="1.8"><path d="M5 4h14v16H5zM8.5 9h7M8.5 13h7M8.5 17h4"></path></svg>
+            <span style="font:500 12.5px Roboto">Notes</span>
+          </button>
+          <button class="card" data-act="doUpload" style="flex:1;min-height:98px;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#51006E" stroke-width="1.8"><path d="M12 16V5M8 9l4-4 4 4M5 18h14"></path></svg>
+            <span style="font:500 12.5px Roboto">Upload</span>
+          </button>
+        </div>
+        <div style="padding:12px 20px 0">
+          <button data-go="captures" style="display:flex;align-items:center;gap:13px;width:100%;min-height:74px;padding:0 16px;border:0;border-radius:20px;background:linear-gradient(120deg,#51006E,#7a2a9c);cursor:pointer;text-align:left;box-shadow:0 12px 26px rgba(45,0,66,.22)">
+            <div style="width:40px;height:40px;border-radius:12px;background:rgba(255,193,69,.24);display:flex;align-items:center;justify-content:center">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#FFC145" stroke-width="1.9"><path d="M4 5h6v6H4zM14 5h6v6h-6zM4 13h6v6H4zM14 13h6v6h-6z"></path></svg>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font:700 14.5px Roboto;color:#fff">Organise captures</div>
+              <div class="sub" id="organiseSub" style="color:rgba(255,255,255,.74)">12 captures in date order</div>
+            </div>
+            <span id="organiseBadge" style="padding:5px 9px;border-radius:9px;background:#FFC145;color:#3d0053;font:700 9.5px 'Roboto Mono',monospace">NEW</span>
+          </button>
+        </div>
+        <div style="display:flex;gap:22px;margin:18px 20px 0;border-bottom:1px solid #E9E5F0">
+          <button class="chip" id="tabAll" data-act="tabAll" style="border:0;background:transparent;border-radius:0;padding:0 0 9px;font:700 13.5px Roboto">All captures</button>
+          <button class="chip" id="tabOrg" data-act="tabOrg" style="border:0;background:transparent;border-radius:0;padding:0 0 9px;font:700 13.5px Roboto;color:#9b93ab">Organised</button>
+        </div>
+        <div id="eventBody" style="padding:16px 20px 22px"></div>
+      </section>
+
+      <!-- CAPTURES -->
+      <section class="screen" id="sc-captures" style="padding-left:16px;padding-right:16px">
+        <div class="h-row">
+          <button class="back" data-go="event">←</button>
+          <div style="flex:1"><div class="title" style="font-size:16.5px">Captures</div><div class="sub" id="capSub">ESMO · newest first</div></div>
+          <button class="chip" data-act="doUpload" style="border-color:#51006E;font-weight:700">Upload</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="chip" id="cTabAll" data-act="tabAll" style="flex:1;min-height:46px;border-radius:23px;font-weight:700">All captures</button>
+          <button class="chip" id="cTabOrg" data-act="tabOrg" style="flex:1;min-height:46px;border-radius:23px;font-weight:700">Organised</button>
+        </div>
+        <div id="capturesBody" style="margin-top:14px"></div>
+      </section>
+
+      <!-- FOLDER -->
+      <section class="screen" id="sc-folder" style="padding-left:16px;padding-right:16px">
+        <div class="h-row">
+          <button class="back" data-act="backFolder">←</button>
+          <div style="flex:1"><div class="title" style="font-size:16.5px" id="folderName">Presentations</div><div class="sub" id="folderSub">Grouped by session</div></div>
+        </div>
+        <div id="folderBody" style="margin-top:16px"></div>
+      </section>
+
+      <!-- NOTES -->
+      <section class="screen" id="sc-notes">
+        <div class="h-row">
+          <button class="back" data-go="event">←</button>
+          <div><div class="title" style="font-size:16.5px">Notes</div><div class="sub">ESMO · Day 1</div></div>
+        </div>
+        <div class="card" style="padding:16px;margin-top:18px">
+          <div class="mono">NEW NOTE</div>
+          <textarea id="noteDraft" class="field" placeholder="e.g. Follow up with Dr. Mehta on the biomarker cohort before Friday." style="min-height:104px;padding:13px;margin-top:8px;resize:none;font-weight:400;line-height:1.5"></textarea>
+          <div class="mono" style="margin-top:12px">REMIND ME AT</div>
+          <div style="display:flex;gap:9px;margin-top:8px">
+            <input id="remindDate" class="field" type="date" value="2026-10-16" style="flex:1.3">
+            <input id="remindTime" class="field" type="time" value="18:00" style="flex:1">
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <button class="chip" data-rd="2026-10-16" data-rt="18:00">18:00 today</button>
+            <button class="chip" data-rd="2026-10-17" data-rt="09:00">09:00 tomorrow</button>
+            <button class="chip" data-rd="2026-10-21" data-rt="10:00">After the event</button>
+          </div>
+          <button class="btn btn-p" data-act="saveNote" style="width:100%;margin-top:12px;min-height:50px">Save note &amp; set reminder</button>
+        </div>
+        <div style="font:700 14.5px Roboto;margin-top:20px" id="noteHead">Saved notes · 1</div>
+        <div id="noteList" style="display:flex;flex-direction:column;gap:10px;margin-top:10px"></div>
+      </section>
+
+      <!-- CONFS -->
+      <section class="screen" id="sc-confs">
+        <div class="h-row" style="justify-content:space-between">
+          <div class="title">Conferences</div>
+          <button class="btn btn-p" data-go="create" style="min-height:40px;padding:0 14px;font-size:12.5px">+ Create</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;min-height:52px;margin-top:12px;padding:0 16px;border-radius:26px;background:#fff;border:1px solid #E9E5F0">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9b93ab" stroke-width="1.9"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+          <input id="confQuery" class="field" placeholder="Search my conferences…" style="border:0;background:transparent;padding:0;min-height:0">
+        </div>
+        <div style="display:flex;gap:20px;margin-top:16px;border-bottom:1px solid #E9E5F0" id="confTabs"></div>
+        <div id="confList" style="display:flex;flex-direction:column;gap:10px;margin-top:16px"></div>
+      </section>
+
+      <!-- NETWORK -->
+      <section class="screen" id="sc-network">
+        <div class="h-row" style="justify-content:space-between">
+          <div class="title">Network</div>
+          <button class="icon-btn" data-act="toggleNotif">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#51006E" stroke-width="1.8"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6M10.5 20a1.8 1.8 0 0 0 3 0"></path></svg>
+          </button>
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;min-height:52px;margin-top:16px;padding:0 16px;border-radius:26px;background:#fff;border:1px solid #E9E5F0">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9b93ab" stroke-width="1.9"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+          <input id="netQuery" class="field" placeholder="Search people, company, event…" style="border:0;background:transparent;padding:0;min-height:0">
+        </div>
+        <div id="netFilters" style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"></div>
+        <div id="peopleList" style="display:flex;flex-direction:column;gap:10px;margin-top:16px"></div>
+      </section>
+
+      <!-- CONTACT -->
+      <section class="screen nopad" id="sc-contact">
+        <div id="contactHead"></div>
+        <div id="contactBody" style="padding:18px 20px"></div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="screen" id="sc-settings">
+        <div class="title" style="min-height:44px;display:flex;align-items:center">Settings</div>
+        <button class="row" data-go="profile" style="margin-top:10px;padding:16px;border-radius:22px">
+          <div style="width:52px;height:52px;border-radius:50%;background:#51006E;display:flex;align-items:center;justify-content:center;font:700 16px Roboto;color:#FFC145">SJ</div>
+          <div style="flex:1;min-width:0"><div style="font:700 15px Roboto">Dr. Sarah Johnson</div><div class="sub">s.johnson@biogenics.org</div></div>
+          <span style="font:500 11.5px Roboto;color:#51006E">Edit</span>
+        </button>
+        <button class="row" data-go="favs" style="margin-top:12px;padding:15px 16px;border-color:#FFC145;background:#FFF6E2;border-radius:22px">
+          <span style="width:42px;height:42px;border-radius:14px;background:#FFC145;color:#3d0053;display:flex;align-items:center;justify-content:center;font-size:19px">★</span>
+          <div style="flex:1"><div style="font:700 14.5px Roboto">Favourites</div><div class="sub" id="favSummary">4 saved</div></div>
+          <span style="color:#8a5b00">›</span>
+        </button>
+        <div class="card" style="margin-top:18px;overflow:hidden">
+          <div style="display:flex;align-items:center;min-height:56px;padding:0 16px;border-bottom:1px solid #F2EFF7"><span style="flex:1;font:500 14px Roboto">Therapy areas</span><span class="sub">2 selected</span><span style="color:#c4bcd2;margin-left:8px">›</span></div>
+          <div style="display:flex;align-items:center;min-height:56px;padding:0 16px"><span style="flex:1;font:500 14px Roboto">Capture quality</span><span class="sub">High · OCR on</span><span style="color:#c4bcd2;margin-left:8px">›</span></div>
+        </div>
+        <div style="margin-top:16px;padding:15px 16px;border-radius:20px;background:#F0E4F6">
+          <div style="font:700 13px Roboto;color:#51006E">Private by default</div>
+          <div class="sub" style="margin-top:5px">Only you can see your captures unless you share a link. This demo has no login.</div>
+        </div>
+      </section>
+
+      <!-- FAVS -->
+      <section class="screen" id="sc-favs">
+        <div class="h-row">
+          <button class="back" data-go="settings">←</button>
+          <div><div class="title" style="font-size:16.5px">Favourites</div><div class="sub" id="favTotal">saved · grouped by type</div></div>
+        </div>
+        <div id="favTabs" style="display:flex;gap:7px;margin-top:16px;flex-wrap:wrap"></div>
+        <div id="favBody" style="margin-top:16px"></div>
+      </section>
+
+      <!-- PROFILE -->
+      <section class="screen" id="sc-profile">
+        <div class="h-row">
+          <button class="back" data-go="settings">←</button>
+          <div class="title" style="font-size:16.5px">Edit profile</div>
+        </div>
+        <div class="h-row" style="margin-top:18px">
+          <div style="width:64px;height:64px;border-radius:50%;background:#51006E;display:flex;align-items:center;justify-content:center;font:700 20px Roboto;color:#FFC145">SJ</div>
+          <div class="sub" style="flex:1">Your name appears on shared conference links. No account required in this demo.</div>
+        </div>
+        <div class="card" style="padding:15px 16px;margin-top:18px"><div class="mono">FULL NAME</div><input id="pName" class="field" value="Dr. Sarah Johnson" style="margin-top:8px"></div>
+        <div class="card" style="padding:15px 16px;margin-top:11px"><div class="mono">EMAIL</div><input id="pEmail" class="field" value="s.johnson@biogenics.org" style="margin-top:8px"></div>
+        <div class="card" style="padding:15px 16px;margin-top:11px"><div class="mono">ORGANISATION</div><input id="pOrg" class="field" value="BioGenics · Thoracic Oncology" style="margin-top:8px"></div>
+        <button class="btn btn-p" data-act="saveProfile" style="margin-top:18px">Save changes</button>
+      </section>
+
+      <!-- ORGANISING OVERLAY -->
+      <div class="overlay" id="ov-org" style="background:rgba(21,5,32,.92);padding:70px 24px 30px;justify-content:center">
+        <div style="font:500 11px 'Roboto Mono',monospace;letter-spacing:2px;color:#FFC145">SORTING YOUR ROLL</div>
+        <div style="font:700 24px/1.25 Roboto;color:#fff;margin:10px 0 22px">Filing captures into folders…</div>
+        <div id="orgSteps" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
+      <!-- CAPTURE OVERLAY -->
+      <div class="overlay" id="ov-cap" style="background:#150520;padding:70px 20px 30px">
+        <div class="h-row" style="justify-content:space-between">
+          <div><div class="mono" style="color:#FFC145">CAPTURING INTO</div><div style="font:700 14px Roboto;color:#fff" id="capTarget">ESMO Congress 2026</div></div>
+          <button class="back" data-act="closeCapture" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);color:#fff">×</button>
+        </div>
+        <div id="capModes" style="display:flex;gap:7px;margin-top:16px;flex-wrap:wrap"></div>
+        <div style="position:relative;flex:1;margin:16px 0;border-radius:22px;background:linear-gradient(150deg,#2b1038,#3f1a52);overflow:hidden;min-height:280px;display:flex;align-items:center;justify-content:center">
+          <div style="position:absolute;top:14px;left:14px;width:32px;height:32px;border-top:3px solid #FFC145;border-left:3px solid #FFC145;border-radius:8px 0 0 0"></div>
+          <div style="position:absolute;top:14px;right:14px;width:32px;height:32px;border-top:3px solid #FFC145;border-right:3px solid #FFC145;border-radius:0 8px 0 0"></div>
+          <div style="position:absolute;bottom:14px;left:14px;width:32px;height:32px;border-bottom:3px solid #FFC145;border-left:3px solid #FFC145;border-radius:0 0 0 8px"></div>
+          <div style="position:absolute;bottom:14px;right:14px;width:32px;height:32px;border-bottom:3px solid #FFC145;border-right:3px solid #FFC145;border-radius:0 0 8px 0"></div>
+          <div style="position:absolute;top:0;bottom:0;width:70px;background:linear-gradient(90deg,transparent,rgba(255,193,69,.2),transparent);animation:sweep 2.4s linear infinite"></div>
+          <div id="modeHint" style="position:absolute;bottom:20px;font:500 10.5px 'Roboto Mono',monospace;letter-spacing:1px;color:rgba(255,255,255,.62)">SLIDE DETECTED · OCR ON</div>
+        </div>
+        <div id="capSaved" style="display:none;align-items:center;gap:10px;padding:13px 15px;border-radius:16px;background:rgba(31,157,99,.16);border:1px solid rgba(31,157,99,.4);margin-bottom:14px;color:#d8ffe9;font:500 12.5px Roboto">✓ Saved — we'll file it for you</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 8px">
+          <button data-act="gotoCaptures" style="border:0;background:transparent;color:#fff;text-align:left;cursor:pointer"><div class="mono" style="color:rgba(255,255,255,.5)">TODAY</div><div style="font:700 12.5px Roboto" id="todayCount">12</div></button>
+          <button data-act="shoot" style="width:80px;height:80px;border:5px solid rgba(255,255,255,.32);border-radius:50%;background:#FFC145;cursor:pointer"></button>
+          <button data-act="closeCapture" style="border:0;background:transparent;color:#fff;text-align:right;cursor:pointer"><div class="mono" style="color:rgba(255,255,255,.5)">DONE</div><div style="font:700 12.5px Roboto">Close</div></button>
+        </div>
+      </div>
+
+      <!-- ZOOM -->
+      <div class="overlay" id="ov-zoom" style="background:rgba(12,2,20,.94);padding:66px 18px 26px">
+        <div class="h-row" style="justify-content:space-between">
+          <span class="mono" style="color:rgba(255,255,255,.6)" id="zoomMeta">SLIDE · 11:12</span>
+          <button class="back" data-act="closeZoom" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);color:#fff">×</button>
+        </div>
+        <div style="flex:1;margin:16px 0;border-radius:18px;background:repeating-linear-gradient(45deg,#2c2138 0 10px,#372a45 10px 20px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:0">
+          <span class="mono" style="color:rgba(255,255,255,.62)" id="zoomPh">slide photo</span>
+          <span style="font:700 15px Roboto;color:#fff;text-align:center;padding:0 26px" id="zoomTitle">Opening keynote</span>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button class="btn" id="zoomFav" data-act="favZoom" style="flex:1;min-height:50px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff">★ Favourite</button>
+          <button class="btn" data-act="deleteZoom" style="flex:1;min-height:50px;border:1px solid rgba(255,90,90,.4);background:rgba(255,90,90,.14);color:#ff9b9b">Delete</button>
+        </div>
+      </div>
+
+      <!-- NOTIFS -->
+      <div class="overlay" id="ov-notif" style="background:rgba(21,5,32,.42);padding:62px 16px">
+        <div class="card" style="padding:17px;border-radius:24px;box-shadow:0 24px 60px rgba(30,0,45,.32);max-height:100%;overflow:auto;animation:fadeUp .28s both">
+          <div class="h-row" style="justify-content:space-between"><div class="title" style="font-size:15px">Notifications</div><button class="back" data-act="toggleNotif" style="width:36px;height:36px;border:0;background:#F7F8FC;color:#7b7488">×</button></div>
+          <div id="notifList" style="display:flex;flex-direction:column;gap:11px;margin-top:11px"></div>
+        </div>
+      </div>
+
+      <!-- UPLOAD -->
+      <div class="overlay" id="ov-upload" style="background:rgba(21,5,32,.5);justify-content:flex-end">
+        <div style="padding:18px 18px 22px;border-radius:28px 28px 47px 47px;background:#fff;display:flex;flex-direction:column;gap:12px;max-height:88%;animation:fadeUp .28s both">
+          <div class="h-row" style="justify-content:space-between"><div><div class="title" style="font-size:15.5px">Upload to conference</div><div class="sub">ESMO Congress 2026</div></div><button class="back" data-act="closeUpload" style="width:38px;height:38px;border:0;background:#F7F8FC">×</button></div>
+          <div id="uploadList" style="display:flex;flex-direction:column;gap:8px;overflow:auto"></div>
+          <button class="btn btn-p" data-act="confirmUpload" id="uploadLabel">Add 2 files</button>
+        </div>
+      </div>
+
+      <!-- FILE -->
+      <div class="overlay" id="ov-file" style="background:#150520;padding:66px 18px 26px">
+        <div class="h-row">
+          <div style="flex:1"><div class="mono" style="color:#FFC145" id="fileKind">PDF · 4.2 MB</div><div style="font:700 14px Roboto;color:#fff" id="fileName">deck.pdf</div></div>
+          <button class="back" data-act="closeFile" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);color:#fff">×</button>
+        </div>
+        <div style="flex:1;margin:16px 0;border-radius:18px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+          <div style="flex:1;padding:22px 20px;display:flex;flex-direction:column;gap:11px">
+            <div style="height:15px;width:62%;border-radius:4px;background:#51006E"></div>
+            <div style="height:8px;width:100%;border-radius:4px;background:#E4DEEE"></div>
+            <div style="height:8px;width:94%;border-radius:4px;background:#E4DEEE"></div>
+            <div style="height:96px;border-radius:10px;background:#F0E4F6;margin:6px 0"></div>
+            <div style="height:8px;width:90%;border-radius:4px;background:#E4DEEE"></div>
+          </div>
+          <div style="min-height:44px;display:flex;align-items:center;justify-content:center;border-top:1px solid #EDEAF3;font:500 11px 'Roboto Mono',monospace;color:#8b83a0">PAGE 1 OF 12</div>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button class="btn btn-g" style="flex:1" data-act="closeFile">Download</button>
+          <button class="btn" style="flex:1;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.22)" data-act="closeFile">Close</button>
+        </div>
+      </div>
+
+      <!-- SHEET -->
+      <div class="overlay" id="ov-sheet" style="background:rgba(21,5,32,.5);justify-content:flex-end">
+        <div style="padding:18px 18px 24px;border-radius:28px 28px 47px 47px;background:#fff;display:flex;flex-direction:column;gap:11px;animation:fadeUp .26s both">
+          <div class="h-row" style="justify-content:space-between"><div class="title" style="font-size:15px" id="sheetTitle">Conference</div><button class="back" data-act="closeSheet" style="width:36px;height:36px;border:0;background:#F7F8FC">×</button></div>
+          <button class="row" data-act="sheetSetActive"><span style="flex:1;font:500 13.5px Roboto">Set as active conference</span><span style="color:#c4bcd2">›</span></button>
+          <button class="btn" data-act="askDelete" style="border:1px solid #F3D4D4;background:#FDF3F3;color:#a12626">Delete</button>
+        </div>
+      </div>
+
+      <!-- CONFIRM -->
+      <div class="overlay" id="ov-confirm" style="background:rgba(21,5,32,.62);align-items:center;justify-content:center;padding:26px">
+        <div class="card" style="width:100%;padding:22px 20px;border-radius:24px;animation:fadeUp .24s both">
+          <div style="width:44px;height:44px;border-radius:14px;background:#FDF3F3;color:#a12626;display:flex;align-items:center;justify-content:center;font-size:20px">!</div>
+          <div class="title" style="margin-top:11px" id="confirmTitle">Delete?</div>
+          <div class="sub" style="margin-top:8px" id="confirmBody">This can't be undone.</div>
+          <div style="display:flex;gap:9px;margin-top:16px">
+            <button class="btn btn-w" style="flex:1;min-height:50px" data-act="cancelConfirm">Cancel</button>
+            <button class="btn" style="flex:1;min-height:50px;background:#a12626;color:#fff" data-act="doConfirm">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+
+      <nav class="nav" id="nav">
+        <div class="nav-bar">
+          <button class="nav-btn" data-go="home" id="nHome"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 10.5 12 4l8 6.5V20H4z"></path></svg>Home</button>
+          <button class="nav-btn" data-go="confs" id="nConfs"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 6h16v14H4zM4 10h16M8 4v3M16 4v3"></path></svg>Conferences</button>
+          <div style="width:70px;flex:none"></div>
+          <button class="nav-btn" data-go="network" id="nNet"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="9" cy="9" r="3.2"></circle><path d="M3.5 19c.6-3 2.9-4.6 5.5-4.6s4.9 1.6 5.5 4.6M16.5 6.6a3 3 0 0 1 0 5.8M18 19c-.2-1.6-.7-2.9-1.6-3.9"></path></svg>Network</button>
+          <button class="nav-btn" data-go="settings" id="nSet"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M4 12h16M4 17h16"></path><circle cx="9" cy="7" r="2"></circle><circle cx="15" cy="12" r="2"></circle><circle cx="8" cy="17" r="2"></circle></svg>Settings</button>
+          <button class="fab" data-act="openCapture">
+            <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#3d0053" stroke-width="2.2"><path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5A1.5 1.5 0 0 1 18.5 20H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"></path></svg>
+          </button>
+        </div>
+      </nav>
+      <div class="home-ind" id="hind"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const TYPES = {
+  slide:  { badge:"SLIDE",  ph:"slide photo",   folder:"presentations" },
+  poster: { badge:"POSTER", ph:"poster photo",  folder:"posters" },
+  qr:     { badge:"QR",     ph:"QR code",       folder:"qr" },
+  card:   { badge:"BADGE",  ph:"badge / card",  folder:"network" },
+  video:  { badge:"VIDEO",  ph:"session video", folder:"media" },
+  audio:  { badge:"AUDIO",  ph:"session audio", folder:"media" }
+};
+const FOLDERS = [
+  { id:"presentations", name:"Presentations", tag:"SLDS", chip:"#F0E4F6", chipFg:"#51006E", sub:"Grouped by session, audio linked" },
+  { id:"posters", name:"Posters", tag:"PSTR", chip:"#FFF3D6", chipFg:"#8a5b00", sub:"Poster hall, OCR searchable" },
+  { id:"qr", name:"QR codes", tag:"QR", chip:"#E7EEFB", chipFg:"#2a4d8f", sub:"Link plus the files behind it" },
+  { id:"network", name:"Network images", tag:"CARD", chip:"#E9F7EF", chipFg:"#1b5c3c", sub:"Badges and cards → contacts" },
+  { id:"media", name:"Audio & video", tag:"A/V", chip:"#F3E8FF", chipFg:"#5b2b8a", sub:"Recordings tied to their slides" }
+];
+const CITY_ART = {
+  Berlin:"linear-gradient(145deg,#51006E,#a05cc0)", Chicago:"linear-gradient(145deg,#2f0043,#7a2a9c)",
+  Tokyo:"linear-gradient(145deg,#6a1090,#FFC145)", Madrid:"linear-gradient(145deg,#8a5b00,#FFC145)",
+  Mumbai:"linear-gradient(145deg,#3d0053,#c9a8dd)", "San Diego":"linear-gradient(145deg,#51006E,#FFC145)",
+  Orlando:"linear-gradient(145deg,#2f0043,#a05cc0)", Atlanta:"linear-gradient(145deg,#6a1090,#c9a8dd)"
+};
+const QR_FILES = {
+  q1: { title:"Booth 214 — speaker deck", link:"https://helixbio.com/esmo26/deck", time:"10:42 · Day 1", files:[
+    { kind:"PDF", name:"HelixBio_ESMO26_deck.pdf", size:"4.2 MB" },
+    { kind:"MP4", name:"MoA_animation.mp4", size:"18.6 MB" },
+    { kind:"DOCX", name:"Prescribing_summary.docx", size:"310 KB" }
+  ]},
+  q2: { title:"Poster 118 — data appendix", link:"https://esmo.org/p118/appendix", time:"14:05 · Day 1", files:[
+    { kind:"PDF", name:"Poster118_full.pdf", size:"2.8 MB" },
+    { kind:"MP3", name:"Author_walkthrough.mp3", size:"9.1 MB" }
+  ]}
+};
+const FILE_CHIPS = { PDF:["#FDE8E8","#a12626"], MP4:["#E7EEFB","#2a4d8f"], MP3:["#F3E8FF","#5b2b8a"], DOCX:["#E9F7EF","#1b5c3c"], JPG:["#F0E4F6","#51006E"] };
+const DEVICE_FILES = [
+  { id:"d1", kind:"JPG", name:"IMG_4821 — keynote slide", size:"3.1 MB", type:"slide" },
+  { id:"d2", kind:"JPG", name:"IMG_4822 — poster 118", size:"2.7 MB", type:"poster" },
+  { id:"d3", kind:"JPG", name:"IMG_4823 — booth QR", size:"1.4 MB", type:"qr" },
+  { id:"d4", kind:"PDF", name:"Symposium_handout.pdf", size:"5.8 MB", type:"slide" },
+  { id:"d5", kind:"MP4", name:"Panel_discussion.mp4", size:"64 MB", type:"video" },
+  { id:"d6", kind:"JPG", name:"IMG_4830 — badge photo", size:"2.2 MB", type:"card" }
+];
+const PEOPLE0 = [
+  { id:"p1", initials:"SJ", name:"Sarah Johnson", role:"VP Medical Affairs @ BioGenics", src:"BADGE · ESMO DAY 1",
+    bio:"Leads medical affairs for the thoracic portfolio. Met at the opening keynote.",
+    site:"biogenics.com", li:"linkedin.com/in/sarahjohnson", email:"s.johnson@biogenics.org", phone:"+1 415 555 0198", notes:[] },
+  { id:"p2", initials:"AM", name:"Dr. Anand Mehta", role:"Thoracic Oncology, Tata Memorial", src:"CARD · ESMO DAY 1",
+    bio:"Runs the biomarker cohort in Mumbai. Asked for the Day 2 immunotherapy slides.",
+    site:"tmc.gov.in", li:"linkedin.com/in/anandmehta", email:"a.mehta@tmc.gov.in", phone:"+91 98200 41122", notes:["Wants the Day 2 immunotherapy slides."] },
+  { id:"p3", initials:"LK", name:"Lena Kraft", role:"Clinical Lead @ Helix Bio", src:"QR · POSTER HALL",
+    bio:"Owns the phase 3 readout presented at poster 118.",
+    site:"helixbio.com", li:"linkedin.com/in/lenakraft", email:"l.kraft@helixbio.com", phone:"+49 30 5557 220", notes:[] },
+  { id:"p4", initials:"RO", name:"Rafael Ortiz", role:"Biostatistician, Hospital Clínic", src:"BADGE · DAY 2",
+    bio:"Statistical lead on two of the accelerated approvals discussed in the plenary.",
+    site:"clinicbarcelona.org", li:"linkedin.com/in/rafaelortiz", email:"r.ortiz@clinic.cat", phone:"+34 932 275 400", notes:[] },
+  { id:"p5", initials:"MT", name:"Mika Tanaka", role:"Medical Science Liaison", src:"CARD · EXHIBITION",
+    bio:"Covers APAC congresses and wants a shared library for the Tokyo satellite.",
+    site:"nihonpharma.jp", li:"linkedin.com/in/mikatanaka", email:"m.tanaka@nihonpharma.jp", phone:"+81 3 5555 8820", notes:[] }
+];
+
+const S = {
+  screen: "home",
+  overlay: null,
+  organised: false,
+  capTab: "all",
+  homeTab: "upcoming",
+  confTab: "Active",
+  confQuery: "",
+  netQuery: "",
+  netFilter: "All",
+  favTab: "All",
+  folder: "presentations",
+  folderFrom: "event",
+  mode: "Slide",
+  zoom: null,
+  file: null,
+  sheet: null,
+  confirm: null,
+  contact: "p1",
+  uploadPicked: ["d1","d2"],
+  activeConf: "esmo26",
+  openConf: "esmo26",
+  query: "",
+  contactFavs: [],
+  people: PEOPLE0,
+  confs: [
+    { id:"esmo26", name:"ESMO Congress 2026", city:"Berlin", loc:"Berlin, Messe Süd", start:"2026-10-16", end:"2026-10-20", status:"active", fav:false, host:false },
+    { id:"wclc26", name:"WCLC Lung Cancer 2026", city:"Tokyo", loc:"Tokyo International Forum", start:"2026-12-04", end:"2026-12-07", status:"upcoming", fav:false, host:false },
+    { id:"asco27", name:"ASCO 2027", city:"Chicago", loc:"McCormick Place, Chicago", start:"2027-06-04", end:"2027-06-08", status:"upcoming", fav:true, host:false },
+    { id:"esmo25", name:"ESMO Congress 2025", city:"Madrid", loc:"IFEMA, Madrid", start:"2025-10-17", end:"2025-10-21", status:"past", count:112, fav:false, host:false },
+    { id:"asco25", name:"ASCO 2025", city:"Chicago", loc:"McCormick Place, Chicago", start:"2025-05-30", end:"2025-06-03", status:"past", count:78, fav:true, host:false },
+    { id:"jc26", name:"Thoracic journal club", city:"Mumbai", loc:"Tata Memorial, Mumbai", start:"2026-03-04", end:"2026-03-04", status:"past", count:16, fav:false, host:true }
+  ],
+  caps: [
+    { id:"c1", conf:"esmo26", type:"slide", title:"Opening keynote · slide 14", time:"11:12", group:"Just now", fav:false },
+    { id:"c2", conf:"esmo26", type:"qr", title:"Booth 214 QR", time:"10:42", group:"Just now", fav:false, qr:"q1" },
+    { id:"c3", conf:"esmo26", type:"card", title:"Badge · Sarah Johnson", time:"10:20", group:"Just now", fav:true },
+    { id:"c4", conf:"esmo26", type:"poster", title:"Poster 118 · biomarkers", time:"09:58", group:"Earlier today", fav:false },
+    { id:"c5", conf:"esmo26", type:"slide", title:"Plenary · survival curves", time:"09:41", group:"Earlier today", fav:false },
+    { id:"c6", conf:"esmo26", type:"qr", title:"Poster 118 QR", time:"09:36", group:"Earlier today", fav:false, qr:"q2" },
+    { id:"c7", conf:"esmo26", type:"audio", title:"Q&A panel 3 · 42 min", time:"09:20", group:"Earlier today", fav:false },
+    { id:"c8", conf:"esmo26", type:"poster", title:"Poster 204 · real-world data", time:"09:05", group:"Earlier today", fav:false },
+    { id:"c9", conf:"esmo26", type:"card", title:"Card · Dr. Anand Mehta", time:"08:52", group:"Earlier today", fav:false },
+    { id:"c10", conf:"esmo26", type:"slide", title:"Symposium · dosing", time:"08:40", group:"Earlier today", fav:false },
+    { id:"c11", conf:"esmo26", type:"video", title:"Booth demo clip", time:"08:31", group:"Earlier today", fav:false },
+    { id:"c12", conf:"esmo26", type:"slide", title:"Late breaker · endpoints", time:"08:14", group:"Earlier today", fav:false }
+  ],
+  notes: [{ id:"n1", text:"Follow up with Dr. Mehta on the biomarker cohort before Friday.", remind:"DAY 1 · 18:00", time:"11:04", fav:false }]
+};
+
+const APP = ["search","create","event","captures","folder","notes","home","confs","network","contact","settings","favs","profile"];
+const DARK = ["intro1","intro2"];
+const LIGHT_STATUS = ["intro1","intro2","event","contact"];
+
+function conf(id){ return S.confs.find(c => c.id === (id || S.openConf)) || null; }
+function myCaps(){ return S.caps.filter(c => c.conf === S.openConf); }
+function art(city){ return CITY_ART[city] || "linear-gradient(145deg,#51006E,#7a2a9c)"; }
+function fmt(d){
+  if(!d) return "";
+  const p = String(d).split("-");
+  const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][Number(p[1])-1] || "";
+  return m + " " + Number(p[2]);
+}
+function dates(c){ return !c ? "" : (c.start === c.end ? fmt(c.start) : fmt(c.start) + "–" + fmt(c.end)); }
+function toast(msg){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("on");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove("on"), 2200);
+}
+function go(id){
+  S.overlay = null;
+  S.zoom = null;
+  S.file = null;
+  S.sheet = null;
+  S.confirm = null;
+  S.screen = id;
+  render();
+}
+
+function tileHtml(c){
+  const t = TYPES[c.type] || TYPES.slide;
+  return `<button class="tile" data-zoom="${c.id}">
+    <span class="ph">${t.ph}</span>
+    <span class="cap"></span>
+    <span class="lab">${t.badge} ${c.time}</span>
+    <span class="star" style="color:${c.fav ? "#FFC145" : "rgba(255,255,255,.55)"}">★</span>
+  </button>`;
+}
+function groupsHtml(){
+  const caps = myCaps();
+  return ["Just now","Earlier today"].map(g => {
+    const items = caps.filter(c => c.group === g);
+    if(!items.length) return "";
+    return `<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+      <span class="mono">${g === "Just now" ? "JUST NOW" : "EARLIER TODAY"} · ${items.length}</span>
+      <div class="grid3">${items.map(tileHtml).join("")}</div>
+    </div>`;
+  }).join("");
+}
+function foldersHtml(){
+  const caps = myCaps();
+  if(!S.organised){
+    return `<div class="card" style="padding:19px 17px;border-style:dashed;border-color:#C9BFD8">
+      <div style="font:700 14.5px Roboto">Nothing filed yet</div>
+      <div class="sub" style="margin-top:8px">Organise all sorts your ${caps.length} captures into posters, presentations, QR codes, network images and media.</div>
+      <button class="btn btn-g" data-act="organiseAll" style="width:100%;margin-top:12px;min-height:50px">Organise all</button>
+    </div>`;
+  }
+  return `<div style="display:flex;flex-direction:column;gap:10px">${FOLDERS.map(f => {
+    const n = caps.filter(c => (TYPES[c.type]||TYPES.slide).folder === f.id).length;
+    return `<button class="row" data-folder="${f.id}">
+      <div style="width:54px;height:54px;border-radius:14px;background:${f.chip};display:flex;align-items:center;justify-content:center;font:700 11px 'Roboto Mono';color:${f.chipFg}">${f.tag}</div>
+      <div style="flex:1;min-width:0"><div style="font:700 14px Roboto">${f.name}</div><div class="sub">${f.sub}</div></div>
+      <span style="font:500 12px 'Roboto Mono';color:#9b93ab">${n}</span>
+    </button>`;
+  }).join("")}</div>`;
+}
+function qrCells(seed){
+  let html = "";
+  for(let i=0;i<25;i++){
+    const on = ((i * 7 + seed * 13) % 5) < 2 || i === 0 || i === 4 || i === 20;
+    html += `<div style="border-radius:1px;background:${on ? "#1b1024" : "#fff"}"></div>`;
+  }
+  return html;
+}
+
+function render(){
+  document.querySelectorAll(".screen").forEach(el => el.classList.toggle("on", el.id === "sc-" + S.screen));
+  document.querySelectorAll(".overlay").forEach(el => el.classList.remove("on"));
+  if(S.overlay) { const o = document.getElementById("ov-" + S.overlay); if(o) o.classList.add("on"); }
+
+  const navOn = APP.includes(S.screen) && !S.overlay;
+  document.getElementById("nav").classList.toggle("on", navOn);
+  const st = document.getElementById("status");
+  st.classList.toggle("light", LIGHT_STATUS.includes(S.screen) || S.overlay === "cap" || S.overlay === "zoom" || S.overlay === "file" || S.overlay === "org");
+  document.getElementById("hind").classList.toggle("light", LIGHT_STATUS.includes(S.screen) || !!S.overlay);
+
+  ["home","confs","network","settings"].forEach(k => {
+    const map = {home:"nHome",confs:"nConfs",network:"nNet",settings:"nSet"};
+    document.getElementById(map[k]).classList.toggle("on", S.screen === k);
+  });
+
+  const openC = conf();
+  const caps = myCaps();
+
+  document.getElementById("rollGrid").innerHTML = [
+    ["KEYNOTE SLIDE","#fff"],["POSTER HALL","#FFE3A6"],["DINNER","rgba(255,255,255,.7)"],
+    ["BADGE","#fff"],["DATA SLIDE","#fff"],["PUPPY","rgba(255,255,255,.7)"],
+    ["BOOTH QR","#FFE3A6"],["FAMILY","rgba(255,255,255,.7)"],["WHITEBOARD","#fff"]
+  ].map(([l,c]) => `<div style="aspect-ratio:1;border-radius:13px;overflow:hidden;position:relative;background:repeating-linear-gradient(45deg,#6a2a88 0 8px,#7a3a98 8px 16px)"><span style="position:absolute;left:8px;top:7px;font:500 8.5px 'Roboto Mono';color:${c}">${l}</span></div>`).join("");
+
+  const active = conf(S.activeConf);
+  document.getElementById("activeCard").innerHTML = active ? `
+    <div style="display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;border-radius:50%;background:#FFC145;animation:pulse 1.8s infinite"></span><span style="font:700 10.5px 'Roboto Mono';letter-spacing:1.2px;color:#FFE3A6">ACTIVE NOW</span></div>
+    <div style="font:700 20px Roboto;margin-top:12px">${active.name}</div>
+    <div style="font:400 12.5px Roboto;color:rgba(255,255,255,.82);margin-top:4px">${active.loc} · ${dates(active)}</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:14px">
+      ${[{v:caps.length,l:"CAPTURES"},{v:caps.filter(c=>c.type==="slide"||c.type==="poster").length,l:"SLIDES+PSTR"},{v:caps.filter(c=>c.type==="card").length,l:"CONTACTS"},{v:S.notes.length,l:"NOTES"}].map(m=>`<div style="padding:9px 8px;border-radius:12px;background:rgba(255,255,255,.2)"><div style="font:700 16px Roboto">${m.v}</div><div style="font:400 9px 'Roboto Mono';color:rgba(255,255,255,.78)">${m.l}</div></div>`).join("")}
+    </div>` : `<div style="font:700 16px Roboto">No active conference</div><div class="sub" style="color:rgba(255,255,255,.8);margin-top:6px">Start one to capture straight into it</div>`;
+
+  document.getElementById("statConfs").textContent = S.confs.length;
+  document.getElementById("statCaps").textContent = S.caps.length + 206;
+  const favTotal = S.caps.filter(c=>c.fav).length + S.confs.filter(c=>c.fav).length + S.notes.filter(n=>n.fav).length + S.contactFavs.length;
+  document.getElementById("statFavs").textContent = favTotal;
+  document.getElementById("homeUp").style.color = S.homeTab === "upcoming" ? "#51006E" : "#9b93ab";
+  document.getElementById("homeUp").style.boxShadow = S.homeTab === "upcoming" ? "inset 0 -2.5px 0 #51006E" : "none";
+  document.getElementById("homePast").style.color = S.homeTab === "past" ? "#51006E" : "#9b93ab";
+  document.getElementById("homePast").style.boxShadow = S.homeTab === "past" ? "inset 0 -2.5px 0 #51006E" : "none";
+  const homeItems = S.confs.filter(c => c.status === (S.homeTab === "upcoming" ? "upcoming" : "past")).slice(0,3);
+  document.getElementById("homeList").innerHTML = homeItems.length ? homeItems.map(c => `
+    <button class="row" data-open="${c.id}">
+      <div style="width:52px;height:52px;border-radius:13px;background:${art(c.city)};display:flex;align-items:center;justify-content:center;font:700 11px 'Roboto Mono';color:#fff">${c.city.slice(0,3).toUpperCase()}</div>
+      <div style="flex:1;min-width:0"><div style="font:700 13.5px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div><div class="sub">${c.host ? "Hosted by you · " : c.loc + " · "}${dates(c)}</div></div>
+      <span style="font:500 10.5px 'Roboto Mono';color:#9b93ab">${c.status === "past" ? (c.count||0)+" caps" : (c.start > "2027-01-01" ? "in 8 mo" : "in 7 wks")}</span>
+    </button>`).join("") : `<div class="card" style="padding:20px;border-style:dashed;text-align:center;color:#8b83a0">No ${S.homeTab} conferences yet.</div>`;
+
+  const q = S.query.trim().toLowerCase();
+  document.getElementById("searchIdle").style.display = q ? "none" : "block";
+  const resEl = document.getElementById("searchResults");
+  if(q){
+    const results = S.confs.filter(c => (c.name+" "+c.city+" "+c.loc).toLowerCase().includes(q));
+    resEl.style.display = "block";
+    resEl.innerHTML = `<div class="mono">${results.length ? results.length+" CONFERENCE"+(results.length>1?"S":"")+" FOUND" : "NO MATCHES"}</div>` +
+      results.map(c => `<button class="row" data-open="${c.id}" style="margin-top:10px">
+        <div style="width:60px;height:60px;border-radius:14px;background:${art(c.city)};display:flex;align-items:center;justify-content:center;font:700 11px 'Roboto Mono';color:#fff">${c.city.slice(0,3).toUpperCase()}</div>
+        <div style="flex:1"><div style="font:700 14px Roboto">${c.name}</div><div class="sub">${c.loc} · ${dates(c)}</div></div>
+        <span style="font:500 11px Roboto;color:#51006E">Join</span>
+      </button>`).join("") +
+      (results.length ? "" : `<div class="card" style="margin-top:12px;padding:20px;border-style:dashed">
+        <div style="font:700 15px Roboto">No conference matches “${S.query}”</div>
+        <div class="sub" style="margin-top:6px">Create it yourself in seconds — journal club, internal meeting, or a congress we don't list yet.</div>
+        <button class="btn btn-g" data-go="create" style="width:100%;margin-top:14px">+ Create conference</button>
+      </div>`);
+  } else resEl.style.display = "none";
+
+  if(openC){
+    document.getElementById("evName").textContent = openC.name;
+    document.getElementById("evMeta").textContent = openC.loc + " · " + dates(openC);
+    document.getElementById("evStatus").textContent = openC.id === S.activeConf ? "ACTIVE CONFERENCE" : openC.status === "upcoming" ? "UPCOMING · SAVED" : "ARCHIVED";
+    document.getElementById("evFav").style.color = openC.fav ? "#FFC145" : "rgba(255,255,255,.6)";
+    document.getElementById("evMetrics").innerHTML = [
+      {v:caps.length,l:"CAPTURES"},{v:caps.filter(c=>c.type==="slide"||c.type==="poster").length,l:"SLIDES+PSTR"},
+      {v:caps.filter(c=>c.type==="card").length,l:"CONTACTS"},{v:S.notes.length,l:"NOTES"}
+    ].map(m => `<div style="padding:11px 9px;border-radius:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18)"><div style="font:700 19px Roboto">${m.v}</div><div style="font:400 9.5px 'Roboto Mono';letter-spacing:.5px;color:rgba(255,255,255,.7)">${m.l}</div></div>`).join("");
+  }
+  document.getElementById("organiseSub").textContent = S.organised ? "Filed into 5 folders · tap a folder to open" : caps.length + " captures in date order · tap to file them";
+  document.getElementById("organiseBadge").textContent = S.organised ? "FILED" : "NEW";
+  document.getElementById("tabAll").style.color = S.capTab === "all" ? "#51006E" : "#9b93ab";
+  document.getElementById("tabAll").style.boxShadow = S.capTab === "all" ? "inset 0 -2.5px 0 #51006E" : "none";
+  document.getElementById("tabOrg").style.color = S.capTab === "organised" ? "#51006E" : "#9b93ab";
+  document.getElementById("tabOrg").style.boxShadow = S.capTab === "organised" ? "inset 0 -2.5px 0 #51006E" : "none";
+  document.getElementById("tabAll").textContent = "All captures · " + caps.length;
+  document.getElementById("tabOrg").textContent = S.organised ? "Organised · 5" : "Organised";
+  document.getElementById("eventBody").innerHTML = S.capTab === "all" ? groupsHtml() : foldersHtml();
+
+  document.getElementById("capSub").textContent = (openC ? openC.name.split(" ")[0].toUpperCase() : "EVENT") + " · newest first";
+  document.getElementById("cTabAll").style.background = S.capTab === "all" ? "#51006E" : "#fff";
+  document.getElementById("cTabAll").style.color = S.capTab === "all" ? "#fff" : "#51006E";
+  document.getElementById("cTabOrg").style.background = S.capTab === "organised" ? "#51006E" : "#fff";
+  document.getElementById("cTabOrg").style.color = S.capTab === "organised" ? "#fff" : "#51006E";
+  let capBody = "";
+  if(S.capTab === "all"){
+    if(!S.organised) capBody += `<div class="card" style="padding:14px 15px;border-color:#FFC145;display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div style="flex:1"><div style="font:700 13.5px Roboto">${caps.length} unorganised captures</div><div class="sub">Sort into posters, presentations, QR codes and network.</div></div>
+      <button class="btn btn-g" data-act="organiseAll" style="min-height:44px;padding:0 16px;flex:none;font-size:12.5px">Organise all</button>
+    </div>`;
+    else capBody += `<div style="display:flex;align-items:center;gap:10px;padding:13px 15px;border-radius:18px;background:#E9F7EF;border:1px solid #BDE7CF;margin-bottom:14px"><span style="font:700 13px Roboto;color:#1f9d63">✓</span><span style="font:500 12.5px Roboto;color:#1b5c3c">Everything filed into 5 folders.</span></div>`;
+    capBody += groupsHtml();
+  } else capBody = foldersHtml();
+  document.getElementById("capturesBody").innerHTML = capBody;
+
+  const fObj = FOLDERS.find(f => f.id === S.folder) || FOLDERS[0];
+  const folderCaps = caps.filter(c => (TYPES[c.type]||TYPES.slide).folder === S.folder);
+  document.getElementById("folderName").textContent = fObj.name;
+  document.getElementById("folderSub").textContent = fObj.sub + " · " + folderCaps.length + " files";
+  if(S.folder === "qr"){
+    document.getElementById("folderBody").innerHTML = caps.filter(c => c.type === "qr").map((c,i) => {
+      const d = QR_FILES[c.qr] || QR_FILES.q1;
+      return `<div class="card" style="padding:16px;margin-bottom:14px">
+        <div style="display:flex;gap:13px;align-items:center">
+          <div style="width:64px;height:64px;border-radius:12px;background:#fff;border:1px solid #E4E0EC;padding:6px;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);gap:2px">${qrCells(i+1)}</div>
+          <div style="flex:1;min-width:0"><div style="font:700 13.5px Roboto">${d.title}</div><div style="font:400 11px 'Roboto Mono';color:#51006E;word-break:break-all">${d.link}</div><div class="sub">${d.time}</div></div>
+        </div>
+        <div class="mono" style="margin:12px 0 7px">FETCHED FROM LINK</div>
+        ${d.files.map(fl => {
+          const ch = FILE_CHIPS[fl.kind] || FILE_CHIPS.PDF;
+          return `<div style="display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:14px;background:#F7F8FC;border:1px solid #EDEAF3;margin-bottom:7px">
+            <span style="min-width:44px;text-align:center;padding:5px 6px;border-radius:8px;background:${ch[0]};color:${ch[1]};font:700 9.5px 'Roboto Mono'">${fl.kind}</span>
+            <div style="flex:1;min-width:0"><div style="font:500 12.5px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fl.name}</div><div class="sub">${fl.size}</div></div>
+            <button class="btn btn-p" data-file='${JSON.stringify(fl)}' style="min-height:34px;padding:0 12px;font:500 11px Roboto">View</button>
+          </div>`;
+        }).join("")}
+      </div>`;
+    }).join("");
+  } else if(S.folder === "media"){
+    document.getElementById("folderBody").innerHTML = folderCaps.map(c => {
+      const kind = c.type === "video" ? "MP4" : "MP3";
+      const ch = FILE_CHIPS[kind];
+      return `<button class="row" data-file='${JSON.stringify({kind,name:c.title,size:c.type==="video"?"64 MB":"18 MB"})}'>
+        <span style="min-width:46px;text-align:center;padding:7px 6px;border-radius:10px;background:${ch[0]};color:${ch[1]};font:700 10px 'Roboto Mono'">${kind}</span>
+        <div style="flex:1;min-width:0"><div style="font:700 13px Roboto">${c.title}</div><div class="sub">${c.type==="video"?"64 MB":"18 MB"} · ${c.time}</div></div>
+        <span style="color:#c4bcd2">›</span>
+      </button>`;
+    }).join("") || `<div class="card" style="padding:22px;border-style:dashed;text-align:center;color:#8b83a0">This folder is empty.</div>`;
+  } else {
+    document.getElementById("folderBody").innerHTML = folderCaps.length
+      ? `<div class="grid3">${folderCaps.map(tileHtml).join("")}</div>`
+      : `<div class="card" style="padding:22px;border-style:dashed;text-align:center;color:#8b83a0">This folder is empty for this conference.</div>`;
+  }
+
+  document.getElementById("noteHead").textContent = "Saved notes · " + S.notes.length;
+  document.getElementById("noteList").innerHTML = S.notes.map(n => `
+    <div class="card" style="padding:15px">
+      <div style="font:400 13.5px/1.5 Roboto">${n.text}</div>
+      <div class="h-row" style="margin-top:8px;min-height:0">
+        <span style="padding:5px 9px;border-radius:9px;background:#F0E4F6;color:#51006E;font:500 10px 'Roboto Mono'">${n.remind}</span>
+        <span class="sub" style="flex:1">${n.time}</span>
+        <button data-nfav="${n.id}" style="border:0;background:transparent;cursor:pointer;font-size:16px;color:${n.fav?"#FFC145":"#c4bcd2"}">★</button>
+      </div>
+    </div>`).join("");
+
+  document.getElementById("confTabs").innerHTML = ["Active","Upcoming","Past"].map(t =>
+    `<button class="chip" data-ctab="${t}" style="border:0;background:transparent;border-radius:0;padding:0 0 9px;font:700 13.5px Roboto;color:${S.confTab===t?"#51006E":"#9b93ab"};box-shadow:${S.confTab===t?"inset 0 -2.5px 0 #51006E":"none"}">${t}</button>`
+  ).join("");
+  const cq = S.confQuery.trim().toLowerCase();
+  const confsFiltered = S.confs.filter(c => {
+    const st2 = c.id === S.activeConf ? "active" : c.status;
+    if(st2 !== S.confTab.toLowerCase()) return false;
+    if(cq && !(c.name+" "+c.city+" "+c.loc).toLowerCase().includes(cq)) return false;
+    return true;
+  });
+  document.getElementById("confList").innerHTML = confsFiltered.length ? confsFiltered.map(c => `
+    <div class="row" style="border-color:${c.id===S.activeConf?"#51006E":"#EDEAF3"}">
+      <button data-open="${c.id}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;border:0;background:transparent;padding:0;cursor:pointer;text-align:left">
+        <div style="width:54px;height:54px;border-radius:14px;background:${art(c.city)};display:flex;align-items:center;justify-content:center;font:700 11px 'Roboto Mono';color:#fff">${c.city.slice(0,3).toUpperCase()}</div>
+        <div style="flex:1;min-width:0"><div style="font:700 13.5px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div><div class="sub">${c.loc} · ${dates(c)}</div>
+          <div style="display:flex;gap:7px;margin-top:4px"><span style="padding:3px 7px;border-radius:7px;background:${c.id===S.activeConf?"#FFC145":"#F0E4F6"};color:${c.id===S.activeConf?"#3d0053":"#51006E"};font:700 8.5px 'Roboto Mono'">${c.id===S.activeConf?"ACTIVE":c.status==="upcoming"?"UPCOMING":"ARCHIVE"}</span><span class="sub">${c.id===S.activeConf ? myCaps().length+" captures" : (c.count||0)+" captures"}</span></div>
+        </div>
+      </button>
+      <div><button data-cfav="${c.id}" style="width:38px;height:34px;border:0;background:transparent;cursor:pointer;color:${c.fav?"#FFC145":"#c4bcd2"}">★</button>
+      <button data-cmenu="${c.id}" style="width:38px;height:34px;border:0;background:transparent;cursor:pointer;color:#9b93ab;font-weight:700">⋯</button></div>
+    </div>`).join("") : `<div class="card" style="padding:22px;border-style:dashed;text-align:center;color:#8b83a0">No ${S.confTab.toLowerCase()} conferences yet.</div>`;
+
+  document.getElementById("netFilters").innerHTML = ["All","From badges","QR","With notes"].map(t =>
+    `<button class="chip ${S.netFilter===t?"on":""}" data-nfilter="${t}">${t}</button>`
+  ).join("");
+  const nq = S.netQuery.trim().toLowerCase();
+  const people = S.people.filter(p => {
+    if(nq && !(p.name+" "+p.role+" "+p.src).toLowerCase().includes(nq)) return false;
+    if(S.netFilter === "From badges" && !p.src.includes("BADGE")) return false;
+    if(S.netFilter === "QR" && !p.src.includes("QR")) return false;
+    if(S.netFilter === "With notes" && !p.notes.length) return false;
+    return true;
+  });
+  const chips = ["#51006E","#FFC145","#F0E4F6","#E7EEFB","#FFF3D6"];
+  const chipFg = ["#FFC145","#3d0053","#51006E","#2a4d8f","#8a5b00"];
+  document.getElementById("peopleList").innerHTML = people.map((p,i) => `
+    <div class="row">
+      <button data-person="${p.id}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;border:0;background:transparent;padding:0;cursor:pointer;text-align:left">
+        <div style="width:46px;height:46px;border-radius:50%;background:${chips[i%5]};color:${chipFg[i%5]};display:flex;align-items:center;justify-content:center;font:700 13px Roboto">${p.initials}</div>
+        <div style="flex:1;min-width:0"><div style="font:700 13.5px Roboto">${p.name}</div><div class="sub">${p.role}</div>
+          <div style="display:flex;gap:7px;align-items:center;margin-top:2px"><span style="font:500 9.5px 'Roboto Mono';color:#9b93ab">${p.src}</span>${p.notes.length?`<span style="padding:3px 6px;border-radius:6px;background:#FFF3D6;color:#8a5b00;font:700 8.5px 'Roboto Mono'">${p.notes.length} note</span>`:""}</div>
+        </div>
+      </button>
+      <button data-pmenu="${p.id}" style="width:38px;height:38px;border:0;background:transparent;cursor:pointer;color:#9b93ab;font-weight:700">⋯</button>
+    </div>`).join("");
+
+  const person = S.people.find(p => p.id === S.contact) || S.people[0];
+  document.getElementById("contactHead").innerHTML = `
+    <div style="padding:62px 20px 22px;background:linear-gradient(155deg,#51006E,#7a2a9c);border-radius:0 0 28px 28px">
+      <div class="h-row" style="justify-content:space-between">
+        <button class="back" data-go="network" style="background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28);color:#fff">←</button>
+        <button class="icon-btn" data-act="favContact" style="background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28);color:${S.contactFavs.includes(person.id)?"#FFC145":"rgba(255,255,255,.6)"}">★</button>
+      </div>
+      <div class="h-row" style="margin-top:16px;align-items:center">
+        <div style="width:78px;height:78px;border-radius:50%;background:#FFC145;display:flex;align-items:center;justify-content:center;font:700 26px Roboto;color:#3d0053;border:2px solid rgba(255,255,255,.4)">${person.initials}</div>
+        <div><div style="font:700 21px Roboto;color:#fff">${person.name}</div><div class="sub" style="color:rgba(255,255,255,.8)">${person.role}</div><div class="mono" style="color:#FFC145;margin-top:4px">${person.src}</div></div>
+      </div>
+    </div>`;
+  document.getElementById("contactBody").innerHTML = `
+    <div class="card" style="padding:16px"><div class="mono">ABOUT</div><div style="font:400 13px/1.6 Roboto;color:#40384f;margin-top:7px">${person.bio}</div></div>
+    <div class="card" style="margin-top:14px;overflow:hidden">${[
+      ["WEB","WEBSITE",person.site],["IN","LINKEDIN",person.li],["@","EMAIL",person.email],["TEL","PHONE",person.phone]
+    ].map(l => `<div style="display:flex;align-items:center;gap:12px;min-height:58px;padding:10px 15px;border-bottom:1px solid #F2EFF7">
+      <span style="width:34px;height:34px;border-radius:11px;background:#F0E4F6;color:#51006E;display:flex;align-items:center;justify-content:center;font:700 9.5px 'Roboto Mono'">${l[0]}</span>
+      <div style="flex:1"><div class="mono">${l[1]}</div><div style="font:500 12.5px Roboto">${l[2]}</div></div>
+      <span style="font:500 11px Roboto;color:#51006E">Open</span>
+    </div>`).join("")}</div>
+    <div class="card" style="padding:16px;margin-top:14px">
+      <div class="mono">MY NOTES</div>
+      ${person.notes.map((t,i)=>`<div style="display:flex;gap:10px;padding:12px;border-radius:14px;background:#F7F8FC;margin-top:8px"><div style="flex:1"><div class="mono">NOTE ${i+1}</div><div style="font:400 12.5px/1.5 Roboto;color:#40384f">${t}</div></div><button data-rmnote="${i}" style="width:30px;height:30px;border:0;border-radius:10px;background:#fff;color:#a12626;cursor:pointer">×</button></div>`).join("")}
+      <div style="display:flex;gap:9px;margin-top:10px"><input id="cNote" class="field" placeholder="Add a note about this contact"><button class="btn btn-p" data-act="addContactNote" style="min-height:48px;padding:0 17px;flex:none;font-size:13px">Add</button></div>
+    </div>
+    <button class="btn" data-act="deleteContactAsk" style="width:100%;margin-top:14px;min-height:50px;border:1px solid #F3D4D4;background:#fff;color:#a12626">Delete contact</button>`;
+
+  document.getElementById("favSummary").textContent = favTotal + " saved · images, conferences, contacts, notes";
+  document.getElementById("favTotal").textContent = favTotal + " saved · grouped by type";
+  const favTabs = ["All","Slides","Posters","QR","Media","Conferences","Contacts","Notes"];
+  document.getElementById("favTabs").innerHTML = favTabs.map(t => `<button class="chip ${S.favTab===t?"on":""}" data-ftab="${t}">${t}</button>`).join("");
+  const favCaps = S.caps.filter(c => c.fav);
+  let favGrid = [], favRows = [];
+  if(["All","Slides","Posters","QR","Media"].includes(S.favTab)){
+    favGrid = S.favTab==="All" ? favCaps : favCaps.filter(c => S.favTab==="Slides"?c.type==="slide":S.favTab==="Posters"?c.type==="poster":S.favTab==="QR"?c.type==="qr":(c.type==="audio"||c.type==="video"));
+  }
+  if(S.favTab==="All" || S.favTab==="Conferences") S.confs.filter(c=>c.fav).forEach(c => favRows.push({kind:"CONFERENCE", title:c.name, sub:c.city+" · "+dates(c), tag:c.city.slice(0,3).toUpperCase(), art:art(c.city), open:c.id}));
+  if(S.favTab==="All" || S.favTab==="Contacts") S.people.filter(p=>S.contactFavs.includes(p.id)).forEach(p => favRows.push({kind:"CONTACT", title:p.name, sub:p.role, tag:p.initials, art:"linear-gradient(145deg,#51006E,#7a2a9c)", person:p.id}));
+  if(S.favTab==="All" || S.favTab==="Notes") S.notes.filter(n=>n.fav).forEach(n => favRows.push({kind:"NOTE", title:n.text, sub:n.remind, tag:"NOTE", art:"linear-gradient(145deg,#8a5b00,#FFC145)"}));
+  document.getElementById("favBody").innerHTML =
+    (favGrid.length ? `<div class="grid3">${favGrid.map(tileHtml).join("")}</div>` : "") +
+    (favRows.length ? `<div style="display:flex;flex-direction:column;gap:10px;margin-top:${favGrid.length?16:0}px">${favRows.map(r => `
+      <button class="row" ${r.open?`data-open="${r.open}"`:r.person?`data-person="${r.person}"`:""} ${r.kind==="NOTE"?'data-go="notes"':""}>
+        <div style="width:48px;height:48px;border-radius:14px;background:${r.art};display:flex;align-items:center;justify-content:center;font:700 10.5px 'Roboto Mono';color:#fff">${r.tag}</div>
+        <div style="flex:1;min-width:0"><div class="mono">${r.kind}</div><div style="font:700 13.5px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.title}</div><div class="sub">${r.sub}</div></div>
+        <span style="color:#c4bcd2">›</span>
+      </button>`).join("")}</div>` : "") +
+    (!favGrid.length && !favRows.length ? `<div class="card" style="padding:24px;border-style:dashed;text-align:center;color:#8b83a0">Nothing favourited in this type yet. Tap ★ on a capture, conference, contact or note.</div>` : "");
+
+  document.getElementById("capModes").innerHTML = ["Slide","Poster","Card / QR","Audio"].map(m =>
+    `<button class="chip" data-mode="${m}" style="background:${S.mode===m?"#FFC145":"rgba(255,255,255,.08)"};color:${S.mode===m?"#3d0053":"rgba(255,255,255,.8)"};border-color:${S.mode===m?"#FFC145":"rgba(255,255,255,.18)"}">${m.toUpperCase()}</button>`
+  ).join("");
+  document.getElementById("modeHint").textContent = S.mode === "Audio" ? "RECORDING · LINKED TO THIS SESSION" : S.mode.toUpperCase() + " DETECTED · OCR ON";
+  document.getElementById("capTarget").textContent = active ? active.name : "Unfiled tray";
+  document.getElementById("todayCount").textContent = caps.length;
+  document.getElementById("capSaved").style.display = S.overlay === "cap" && S._saved ? "flex" : "none";
+
+  if(S.zoom){
+    const z = S.caps.find(c => c.id === S.zoom);
+    if(z){
+      const t = TYPES[z.type] || TYPES.slide;
+      document.getElementById("zoomMeta").textContent = t.badge + " · " + z.time;
+      document.getElementById("zoomPh").textContent = t.ph;
+      document.getElementById("zoomTitle").textContent = z.title;
+      document.getElementById("zoomFav").textContent = z.fav ? "★ Favourited" : "★ Favourite";
+      document.getElementById("zoomFav").style.background = z.fav ? "#FFC145" : "rgba(255,255,255,.08)";
+      document.getElementById("zoomFav").style.color = z.fav ? "#3d0053" : "#fff";
+    }
+  }
+  if(S.file){
+    document.getElementById("fileKind").textContent = S.file.kind + " · " + S.file.size;
+    document.getElementById("fileName").textContent = S.file.name;
+  }
+  document.getElementById("uploadList").innerHTML = DEVICE_FILES.map(f => {
+    const on = S.uploadPicked.includes(f.id);
+    const ch = FILE_CHIPS[f.kind] || FILE_CHIPS.JPG;
+    return `<button class="row" data-up="${f.id}" style="border-color:${on?"#51006E":"#EDEAF3"};background:${on?"#F0E4F6":"#fff"}">
+      <span style="width:24px;height:24px;border-radius:8px;border:1.5px solid ${on?"#51006E":"#D9D2E4"};background:${on?"#51006E":"#fff"};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>
+      <span style="min-width:44px;text-align:center;padding:5px 6px;border-radius:8px;background:${ch[0]};color:${ch[1]};font:700 9.5px 'Roboto Mono'">${f.kind}</span>
+      <div style="flex:1;min-width:0"><div style="font:500 12.5px Roboto">${f.name}</div><div class="sub">${f.size}</div></div>
+    </button>`;
+  }).join("");
+  document.getElementById("uploadLabel").textContent = "Add " + S.uploadPicked.length + " file" + (S.uploadPicked.length===1?"":"s");
+
+  document.getElementById("notifList").innerHTML = [
+    {dot:"#FFC145", title:"AI summary ready", body:"Key points from Opening Keynote are available.", time:"2m"},
+    {dot:"#51006E", title: caps.filter(c=>c.type==="card").length + " contacts saved", body:"Badges from Day 1 were added to your network.", time:"1h"},
+    {dot:"#1f9d63", title:"Filing complete", body: S.organised ? "Captures sorted into 5 folders." : "12 captures waiting to be organised.", time:"3h"}
+  ].concat(S.notes.map(n => ({dot:"#FFC145", title:"Note reminder", body:n.text, time:n.remind}))).map(n => `
+    <div style="display:flex;gap:11px;padding:12px 13px;border-radius:15px;background:#F7F8FC">
+      <div style="width:9px;height:9px;border-radius:50%;background:${n.dot};margin-top:5px;flex:none"></div>
+      <div style="flex:1"><div style="font:700 12.5px Roboto">${n.title}</div><div class="sub">${n.body}</div></div>
+      <span style="font:400 10px 'Roboto Mono';color:#9b93ab">${n.time}</span>
+    </div>`).join("");
+
+  if(S.sheet){
+    const rec = S.sheet.kind === "conf" ? conf(S.sheet.id) : S.people.find(p => p.id === S.sheet.id);
+    document.getElementById("sheetTitle").textContent = rec ? rec.name : "Options";
+  }
+  if(S.confirm){
+    if(S.confirm.kind === "conf"){
+      document.getElementById("confirmTitle").textContent = "Delete this conference?";
+      document.getElementById("confirmBody").textContent = "“" + (conf(S.confirm.id)||{}).name + "” and all of its captures will be removed.";
+    } else {
+      const p = S.people.find(x => x.id === S.confirm.id);
+      document.getElementById("confirmTitle").textContent = "Delete this contact?";
+      document.getElementById("confirmBody").textContent = "“" + (p||{}).name + "” and any notes you added will be removed.";
+    }
+  }
+}
+
+function organiseAll(){
+  S.overlay = "org";
+  const counts = {};
+  FOLDERS.forEach(f => counts[f.id] = myCaps().filter(c => (TYPES[c.type]||TYPES.slide).folder === f.id).length);
+  const steps = document.getElementById("orgSteps");
+  steps.innerHTML = FOLDERS.map((f,i) => `<div id="orgs${i}" style="display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:16px;background:rgba(255,255,255,.08);opacity:.35">
+    <div style="width:36px;height:36px;border-radius:10px;background:${f.chip};color:${f.chipFg};display:flex;align-items:center;justify-content:center;font:700 10px 'Roboto Mono'">${f.tag}</div>
+    <div style="flex:1;color:#fff;font:700 14px Roboto">${f.name}</div>
+    <span style="color:#9b93ab;font:500 12px 'Roboto Mono'">…</span>
+  </div>`).join("");
+  render();
+  FOLDERS.forEach((f,i) => {
+    setTimeout(() => {
+      const el = document.getElementById("orgs"+i);
+      if(!el) return;
+      el.style.opacity = "1";
+      el.style.animation = "tickIn .35s both";
+      el.style.background = "rgba(255,193,69,.14)";
+      el.lastElementChild.textContent = counts[f.id] + " filed";
+      el.lastElementChild.style.color = "#4ade9a";
+      el.lastElementChild.textContent = "✓  " + counts[f.id];
+    }, 420 * (i+1));
+  });
+  setTimeout(() => {
+    S.organised = true;
+    S.overlay = null;
+    S.capTab = "organised";
+    S.screen = S.screen === "event" ? "event" : "captures";
+    toast("Organised — " + myCaps().length + " captures filed into 5 folders.");
+    render();
+  }, 420 * 6 + 400);
+}
+
+document.getElementById("app").addEventListener("click", e => {
+  const t = e.target.closest("[data-go],[data-act],[data-open],[data-folder],[data-zoom],[data-q],[data-loc],[data-rd],[data-ctab],[data-nfilter],[data-person],[data-cfav],[data-cmenu],[data-pmenu],[data-nfav],[data-ftab],[data-mode],[data-up],[data-file],[data-rmnote]");
+  if(!t) return;
+  if(t.dataset.go){ go(t.dataset.go); if(t.dataset.act === "closeCapture") S.overlay = null; return; }
+  if(t.dataset.open){ S.openConf = t.dataset.open; S.organised = S.openConf === "esmo26" ? S.organised : true; go("event"); return; }
+  if(t.dataset.folder){ S.folder = t.dataset.folder; S.folderFrom = S.screen; go("folder"); return; }
+  if(t.dataset.zoom){ S.zoom = t.dataset.zoom; S.overlay = "zoom"; render(); return; }
+  if(t.dataset.q){ S.query = t.dataset.q; document.getElementById("qSearch").value = S.query; render(); return; }
+  if(t.dataset.loc){ document.getElementById("newLoc").value = t.dataset.loc; return; }
+  if(t.dataset.rd){ document.getElementById("remindDate").value = t.dataset.rd; document.getElementById("remindTime").value = t.dataset.rt; return; }
+  if(t.dataset.ctab){ S.confTab = t.dataset.ctab; render(); return; }
+  if(t.dataset.nfilter){ S.netFilter = t.dataset.nfilter; render(); return; }
+  if(t.dataset.person){ S.contact = t.dataset.person; go("contact"); return; }
+  if(t.dataset.cfav){ S.confs = S.confs.map(c => c.id === t.dataset.cfav ? {...c, fav:!c.fav} : c); render(); return; }
+  if(t.dataset.cmenu){ S.sheet = {kind:"conf", id:t.dataset.cmenu}; S.overlay = "sheet"; render(); return; }
+  if(t.dataset.pmenu){ S.sheet = {kind:"contact", id:t.dataset.pmenu}; S.overlay = "sheet"; render(); return; }
+  if(t.dataset.nfav){ S.notes = S.notes.map(n => n.id === t.dataset.nfav ? {...n, fav:!n.fav} : n); render(); return; }
+  if(t.dataset.ftab){ S.favTab = t.dataset.ftab; render(); return; }
+  if(t.dataset.mode){ S.mode = t.dataset.mode; render(); return; }
+  if(t.dataset.up){ S.uploadPicked = S.uploadPicked.includes(t.dataset.up) ? S.uploadPicked.filter(x=>x!==t.dataset.up) : S.uploadPicked.concat([t.dataset.up]); render(); return; }
+  if(t.dataset.file){ try { S.file = JSON.parse(t.dataset.file); S.overlay = "file"; render(); } catch(e){} return; }
+  if(t.dataset.rmnote != null){
+    const i = Number(t.dataset.rmnote);
+    S.people = S.people.map(p => p.id === S.contact ? {...p, notes: p.notes.filter((_,j)=>j!==i)} : p);
+    render(); return;
+  }
+  const act = t.dataset.act;
+  if(act === "toggleNotif"){ S.overlay = S.overlay === "notif" ? null : "notif"; render(); }
+  else if(act === "openActive"){ if(S.activeConf){ S.openConf = S.activeConf; go("event"); } }
+  else if(act === "homeUpcoming"){ S.homeTab = "upcoming"; render(); }
+  else if(act === "homePast"){ S.homeTab = "past"; render(); }
+  else if(act === "tabAll"){ S.capTab = "all"; render(); }
+  else if(act === "tabOrg"){ S.capTab = "organised"; render(); }
+  else if(act === "organiseAll"){ organiseAll(); }
+  else if(act === "backFolder"){ go(S.folderFrom === "captures" ? "captures" : "event"); S.capTab = "organised"; render(); }
+  else if(act === "openCapture"){ S.overlay = "cap"; S._saved = false; render(); }
+  else if(act === "closeCapture"){ S.overlay = null; S._saved = false; render(); }
+  else if(act === "gotoCaptures"){ S.overlay = null; S._saved = false; S.folderFrom = "captures"; go("captures"); }
+  else if(act === "shoot"){
+    const type = S.mode === "Poster" ? "poster" : S.mode === "Card / QR" ? "qr" : S.mode === "Audio" ? "audio" : "slide";
+    S.caps.unshift({ id:"x"+Date.now(), conf:S.activeConf, type, title: S.mode + " · ESMO", time:"11:2"+(S.caps.length%9), group:"Just now", fav:false, qr:"q1" });
+    S.organised = false;
+    S._saved = true;
+    toast("Saved to ESMO — waiting to be organised.");
+    render();
+    setTimeout(() => { S._saved = false; render(); }, 1800);
+  }
+  else if(act === "doUpload"){ S.uploadPicked = ["d1","d2"]; S.overlay = "upload"; render(); }
+  else if(act === "closeUpload"){ S.overlay = null; render(); }
+  else if(act === "confirmUpload"){
+    DEVICE_FILES.filter(f => S.uploadPicked.includes(f.id)).forEach((f,i) => {
+      S.caps.unshift({ id:"u"+Date.now()+i, conf:S.openConf, type:f.type, title:f.name, time:"11:3"+i, group:"Just now", fav:false, qr:"q1" });
+    });
+    S.organised = false; S.overlay = null; S.capTab = "all"; S.screen = "event";
+    toast(S.uploadPicked.length + " files uploaded — waiting to be organised.");
+    render();
+  }
+  else if(act === "closeZoom"){ S.overlay = null; S.zoom = null; render(); }
+  else if(act === "favZoom"){ S.caps = S.caps.map(c => c.id === S.zoom ? {...c, fav:!c.fav} : c); render(); }
+  else if(act === "deleteZoom"){ S.caps = S.caps.filter(c => c.id !== S.zoom); S.zoom = null; S.overlay = null; toast("Capture deleted"); render(); }
+  else if(act === "closeFile"){ S.overlay = null; S.file = null; toast("Saved to your device."); render(); }
+  else if(act === "closeSheet"){ S.overlay = null; S.sheet = null; render(); }
+  else if(act === "sheetSetActive"){
+    if(S.sheet && S.sheet.kind === "conf"){
+      S.activeConf = S.sheet.id;
+      S.openConf = S.sheet.id;
+      S.confs = S.confs.map(c => c.id === S.sheet.id ? {...c, status:"active"} : c);
+      S.overlay = null; S.sheet = null; S.screen = "event";
+      toast("Active conference set. Captures file straight into it.");
+      render();
+    } else if(S.sheet && S.sheet.kind === "contact"){
+      S.contact = S.sheet.id; S.overlay = null; S.sheet = null; go("contact");
+    }
+  }
+  else if(act === "askDelete"){ S.confirm = S.sheet; S.overlay = "confirm"; S.sheet = null; render(); }
+  else if(act === "cancelConfirm"){ S.confirm = null; S.overlay = null; render(); }
+  else if(act === "doConfirm"){
+    if(S.confirm && S.confirm.kind === "conf"){
+      S.confs = S.confs.filter(c => c.id !== S.confirm.id);
+      S.caps = S.caps.filter(c => c.conf !== S.confirm.id);
+      if(S.activeConf === S.confirm.id) S.activeConf = null;
+      S.screen = "confs";
+      toast("Conference deleted");
+    } else if(S.confirm && S.confirm.kind === "contact"){
+      S.people = S.people.filter(p => p.id !== S.confirm.id);
+      S.screen = "network";
+      toast("Contact deleted");
+    }
+    S.confirm = null; S.overlay = null; render();
+  }
+  else if(act === "favEvent"){ S.confs = S.confs.map(c => c.id === S.openConf ? {...c, fav:!c.fav} : c); render(); }
+  else if(act === "favContact"){ S.contactFavs = S.contactFavs.includes(S.contact) ? S.contactFavs.filter(x=>x!==S.contact) : S.contactFavs.concat([S.contact]); render(); }
+  else if(act === "saveNote"){
+    const v = document.getElementById("noteDraft").value.trim();
+    if(!v) return;
+    const d = document.getElementById("remindDate").value;
+    const tm = document.getElementById("remindTime").value;
+    S.notes.unshift({ id:"n"+Date.now(), text:v, remind:(fmt(d)+" · "+tm).toUpperCase(), time:"now", fav:false });
+    document.getElementById("noteDraft").value = "";
+    toast("Reminder set · " + fmt(d) + " " + tm);
+    render();
+  }
+  else if(act === "addContactNote"){
+    const inp = document.getElementById("cNote");
+    const v = inp && inp.value.trim();
+    if(!v) return;
+    S.people = S.people.map(p => p.id === S.contact ? {...p, notes:p.notes.concat([v])} : p);
+    toast("Note added");
+    render();
+  }
+  else if(act === "deleteContactAsk"){ S.confirm = {kind:"contact", id:S.contact}; S.overlay = "confirm"; render(); }
+  else if(act === "saveProfile"){ toast("Profile updated"); go("settings"); }
+  else if(act === "createEvent" || act === "createAndCapture"){
+    const name = document.getElementById("newName").value.trim() || "New conference";
+    const loc = document.getElementById("newLoc").value.trim() || "Location TBC";
+    const city = loc.split(",")[0].trim() || "New venue";
+    const id = "n"+Date.now();
+    S.confs.unshift({ id, name, loc, city, start:document.getElementById("newStart").value, end:document.getElementById("newEnd").value, status:"active", fav:false, host:true });
+    S.activeConf = id; S.openConf = id; S.organised = false;
+    S.screen = "event";
+    if(act === "createAndCapture") S.overlay = "cap";
+    toast("Conference created — now your active event.");
+    render();
+  }
+});
+
+document.getElementById("qSearch").addEventListener("input", e => { S.query = e.target.value; render(); });
+document.getElementById("confQuery").addEventListener("input", e => { S.confQuery = e.target.value; render(); });
+document.getElementById("netQuery").addEventListener("input", e => { S.netQuery = e.target.value; render(); });
+
+render();
+</script>
+</body>
+</html>
